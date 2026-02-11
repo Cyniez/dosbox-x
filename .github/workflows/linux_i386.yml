@@ -1,0 +1,40 @@
+name: Build DOSBox-X i386 (Debian)
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+
+jobs:
+  build-i386:
+    runs-on: ubuntu-latest
+    # We use a 32-bit Debian container to ensure an authentic i386 environment
+    container: i386/debian:bookworm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          apt-get update
+          apt-get install -y build-essential xorg-dev libsdl2-dev libsdl2-net-dev \
+          libsdl2-pango-dev libcap-dev libpcap-dev libncurses5-dev \
+          libslirp-dev libfluidsynth-dev libavdevice-dev libavformat-dev \
+          libavcodec-dev libswresample-dev libswscale-dev libpostproc-dev \
+          git automake autoconf
+
+      - name: Run Build Script
+        run: |
+          chmod +x build
+          ./build
+
+      - name: Compile
+        run: make -j$(nproc)
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: dosbox-x-i386-binary
+          path: src/dosbox-x
